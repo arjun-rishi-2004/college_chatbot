@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyBp0u2apoy_a0oRiiQ5i7ccn74QYPzEYuI</string>
+	<key>GCM_SENDER_ID</key>
+	<string>475451161212</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.killer.jobhub</string>
+	<key>PROJECT_ID</key>
+	<string>jobhub2k24</string>
+	<key>STORAGE_BUCKET</key>
+	<string>jobhub2k24.appspot.com</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:475451161212:ios:b7b6ac266de102883ca7f9</string>
+	<key>DATABASE_URL</key>
+	<string>https://jobhub2k24-default-rtdb.firebaseio.com</string>
+</dict>
+</plist>
