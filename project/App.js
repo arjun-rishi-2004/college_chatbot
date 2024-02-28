@@ -4,7 +4,7 @@ import { View, Text, TouchableOpacity, TextInput, Modal, Button, StyleSheet } fr
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { storeJobSeekerInfo, app, auth, database, getDatabase, databaseRef } from './index';
 // Assuming your Firestore is initialized in index.js
-import { getFirestore, collection, addDoc, getDocs ,getDoc,doc} from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs ,getDoc,doc,query,where} from 'firebase/firestore';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -153,9 +153,6 @@ export default function App() {
   
   
   
-  
-  
-
   const handleLogin = async () => {
     try {
       // Validate input
@@ -170,13 +167,18 @@ export default function App() {
       const loggedInUser = userCredential.user;
   
       // Fetch additional details from the "seeker creds" database
-      const seekerCredsCollection = collection(db, 'seekerCreds');
-      const userDetailsDoc = await getDoc(doc(seekerCredsCollection, email));
+      const seekerCredsCollection = 'seekerCreds'; // Replace with your actual collection path
   
-      if (userDetailsDoc.exists()) {
+      // Query the document with the matching email
+      const q = query(collection(db, seekerCredsCollection), where('email', '==', email));
+      const querySnapshot = await getDocs(q);
+  
+      if (!querySnapshot.empty) {
+        // Assuming there is only one document with the provided email
+        const userDetailsDoc = querySnapshot.docs[0];
         const userDetails = userDetailsDoc.data();
   
-        // Display all available details
+        // Log the user details to the console
         console.log('User Details:', userDetails);
   
         // Set the user state with all the fetched details
@@ -189,8 +191,17 @@ export default function App() {
           location: userDetails.location || '',
           // Add more details as needed
         });
+  
+        // Reset error and clear the input fields
+        setError('');
+        setEmail('');
+        setPassword('');
+        setIsSignUp(false);
+  
+        // Display success message
+        toast.success(`Successfully logged in: ${loggedInUser.uid}`);
       } else {
-        // If userDetailsDoc is not found, set user state with basic details
+        // If no matching document is found, set user state with basic details
         setUser({
           uid: loggedInUser.uid,
           email,
@@ -199,20 +210,26 @@ export default function App() {
           contactNumber: '',
           location: '',
         });
+  
+        // Reset error and clear the input fields
+        setError('');
+        setEmail('');
+        setPassword('');
+        setIsSignUp(false);
+  
+        // Display success message
+        toast.success(`Successfully logged in: ${loggedInUser.uid}`);
       }
-  
-      // Reset error and clear the input fields
-      setError('');
-      setEmail('');
-      setPassword('');
-      setIsSignUp(false);
-  
-      toast.success('Successfully logged in:', loggedInUser.uid);
     } catch (error) {
+      // Display error message
       toast.error('Invalid email or password. Please try again.');
-      console.error('Error in handleLogin:', error.message);
+      console.error('Error in handleLogin:', error);
     }
   };
+  
+  
+  
+  
   
   
   
