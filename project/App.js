@@ -4,7 +4,7 @@ import { View, Text, TouchableOpacity, TextInput, Modal, Button, StyleSheet } fr
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { storeJobSeekerInfo, app, auth, database, getDatabase, databaseRef } from './index';
 // Assuming your Firestore is initialized in index.js
-import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs ,getDoc,doc} from 'firebase/firestore';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -164,15 +164,15 @@ export default function App() {
   
       // Fetch additional details from the "seeker creds" database
       const seekerCredsCollection = collection(db, 'seekerCreds');
-      const seekerCredsSnapshot = await getDocs(seekerCredsCollection);
+      const userDetailsDoc = await getDoc(doc(seekerCredsCollection, email));
   
-      // Fetch additional details from the "seeker creds" database
-      const userDetailsDoc = seekerCredsSnapshot.docs.find(doc => doc.id === email);
-  
-      if (userDetailsDoc) {
+      if (userDetailsDoc.exists()) {
         const userDetails = userDetailsDoc.data();
   
-        // Set the user state with the fetched details
+        // Display all available details
+        console.log('User Details:', userDetails);
+  
+        // Set the user state with all the fetched details
         setUser({
           uid: loggedInUser.uid,
           email,
@@ -206,6 +206,8 @@ export default function App() {
       console.error('Error in handleLogin:', error.message);
     }
   };
+  
+  
   
   
 
@@ -242,6 +244,7 @@ export default function App() {
               /* Display user details with edit access */
               <>
                 <Text>User Details:</Text>
+                {console.log('User Details:', user)}
                 {user.email && <Text>Email: {user.email}</Text>}
                 {user.name && <Text>Name: {user.name}</Text>}
                 {user.preferredProfessions && <Text>Preferred Professions: {user.preferredProfessions}</Text>}
