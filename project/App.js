@@ -77,7 +77,7 @@ export default function App() {
   
       if (seekerCredsSnapshot.size > 0) {
         // Check if email already exists
-        const existingUser = seekerCredsSnapshot.docs.find(doc => doc.id === email);
+        const existingUser = seekerCredsSnapshot.docs.find((doc) => doc.id === email);
         if (existingUser) {
           toast.error('User already exists. Please log in.');
           setIsSignUp(false); // Switch to login view
@@ -85,13 +85,19 @@ export default function App() {
           return;
         }
       }
-
-       // Collect additional details from the user
+  
+      // Collect additional details from the user
       const name = prompt('Enter your name:');
       const preferredProfessions = prompt('Enter your preferred professions (comma-separated):');
       const contactNumber = prompt('Enter your contact number:');
       const location = prompt('Enter your location:');
-
+  
+      // Validate collected details
+      if (!name || !preferredProfessions || !contactNumber || !location) {
+        toast.error('Please provide all required details.');
+        console.log('Incomplete details');
+        return;
+      }
   
       // Create user with email and password
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
@@ -101,20 +107,20 @@ export default function App() {
       await addDoc(seekerCredsCollection, {
         email,
         password,
-        name: name || '',  // Use empty string if the user didn't provide a value
-        preferredProfessions: preferredProfessions || '',
-        contactNumber: contactNumber || '',
-        location: location || '',
+        name,
+        preferredProfessions,
+        contactNumber,
+        location,
       });
   
-       // Set the user state with the fetched details
+      // Set the user state with the fetched details
       setUser({
         uid: newUser.uid,
         email,
-        name: name || '',
-        preferredProfessions: preferredProfessions || '',
-        contactNumber: contactNumber || '',
-        location: location || '',
+        name,
+        preferredProfessions,
+        contactNumber,
+        location,
         // Add more details as needed
       });
   
@@ -126,13 +132,13 @@ export default function App() {
   
       // Display success message or navigate to another screen if needed
       toast.success('Successfully registered!');
-
+  
       // Open the modal for the newly signed up user
       setJobSeekerModalVisible(true);
     } catch (error) {
       toast.error('Error in handleSignUp');
       console.error('Error in handleSignUp:', error.message);
-
+  
       if (error.code === 'auth/weak-password') {
         toast.error('Password should be at least 6 characters.');
       } else if (error.code === 'auth/invalid-email') {
@@ -144,6 +150,7 @@ export default function App() {
       }
     }
   };
+  
   
   
   
