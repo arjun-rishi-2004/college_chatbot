@@ -73,17 +73,14 @@ export default function App() {
   
       // Check if the user already exists in "seekerCreds" collection
       const seekerCredsCollection = collection(db, 'seekerCreds');
-      const seekerCredsSnapshot = await getDocs(seekerCredsCollection);
+      const q = query(seekerCredsCollection, where('email', '==', email));
+      const existingUserSnapshot = await getDocs(q);
   
-      if (seekerCredsSnapshot.size > 0) {
-        // Check if email already exists
-        const existingUser = seekerCredsSnapshot.docs.find((doc) => doc.id === email);
-        if (existingUser) {
-          toast.error('User already exists. Please log in.');
-          setIsSignUp(false); // Switch to login view
-          console.log('User already exists');
-          return;
-        }
+      if (existingUserSnapshot.size > 0) {
+        toast.error('User already exists. Please log in.');
+        setIsSignUp(false); // Switch to login view
+        console.log('User already exists');
+        return;
       }
   
       // Collect additional details from the user
@@ -150,7 +147,6 @@ export default function App() {
       }
     }
   };
-  
   
   
   const handleLogin = async () => {
