@@ -1,5 +1,5 @@
 // App.js
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Modal, Button, StyleSheet } from 'react-native';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
 import { storeJobSeekerInfo, app, auth, database, getDatabase, databaseRef } from './index';
@@ -7,8 +7,6 @@ import { storeJobSeekerInfo, app, auth, database, getDatabase, databaseRef } fro
 import { getFirestore, collection, addDoc, getDocs } from 'firebase/firestore';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-const [isLoggedIn, setIsLoggedIn] = useState(false); // New state
-
 
 
 
@@ -21,7 +19,33 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [isSignUp, setIsSignUp] = useState(false);
 
+  
+  const [isLoggedIn, setIsLoggedIn] = useState(false); // New state
+  const [isHomePageVisible, setIsHomePageVisible] = useState(false);
+
+  const [isDetailsModalVisible, setDetailsModalVisible] = useState(false);
+
+  const openDetailsModal = () => {
+    setDetailsModalVisible(true);
+  };
+
+  const closeDetailsModal = () => {
+    setDetailsModalVisible(false);
+  };
+
+  useEffect(() => {
+    // Check if the user is logged in
+    if (user) {
+      setIsLoggedIn(true);
+      setIsHomePageVisible(true);
+    } else {
+      setIsLoggedIn(false);
+      setIsHomePageVisible(false);
+    }
+  }, [user]);
+
   const db = getFirestore(app);
+  let seekerCredsSnapshot;
   
   const handleSignUp = async () => {
     try {
@@ -61,21 +85,36 @@ export default function App() {
           return;
         }
       }
+
+       // Collect additional details from the user
+      const name = prompt('Enter your name:');
+      const preferredProfessions = prompt('Enter your preferred professions (comma-separated):');
+      const contactNumber = prompt('Enter your contact number:');
+      const location = prompt('Enter your location:');
+
   
       // Create user with email and password
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const newUser = userCredential.user;
   
-      // Store user credentials in the "seekerCreds" collection
+      // Store user credentials and additional details in the "seekerCreds" collection
       await addDoc(seekerCredsCollection, {
         email,
-        password,  // You can add more details if needed
+        password,
+        name: name || '',  // Use empty string if the user didn't provide a value
+        preferredProfessions: preferredProfessions || '',
+        contactNumber: contactNumber || '',
+        location: location || '',
       });
   
-      // Set the user state with the fetched details
+       // Set the user state with the fetched details
       setUser({
         uid: newUser.uid,
         email,
+        name: name || '',
+        preferredProfessions: preferredProfessions || '',
+        contactNumber: contactNumber || '',
+        location: location || '',
         // Add more details as needed
       });
   
@@ -87,6 +126,9 @@ export default function App() {
   
       // Display success message or navigate to another screen if needed
       toast.success('Successfully registered!');
+
+      // Open the modal for the newly signed up user
+      setJobSeekerModalVisible(true);
     } catch (error) {
       toast.error('Error in handleSignUp');
       console.error('Error in handleSignUp:', error.message);
@@ -121,15 +163,36 @@ export default function App() {
       const loggedInUser = userCredential.user;
   
       // Fetch additional details from the "seeker creds" database
-      // You can replace this with your implementation
-      // const userDetails = await fetchUserDetails(loggedInUser.uid);
+      const seekerCredsCollection = collection(db, 'seekerCreds');
+      const seekerCredsSnapshot = await getDocs(seekerCredsCollection);
   
-      // Set the user state with the fetched details
-      setUser({
-        uid: loggedInUser.uid,
-        email,
-        // Add more details as needed
-      });
+      // Fetch additional details from the "seeker creds" database
+      const userDetailsDoc = seekerCredsSnapshot.docs.find(doc => doc.id === email);
+  
+      if (userDetailsDoc) {
+        const userDetails = userDetailsDoc.data();
+  
+        // Set the user state with the fetched details
+        setUser({
+          uid: loggedInUser.uid,
+          email,
+          name: userDetails.name || '',
+          preferredProfessions: userDetails.preferredProfessions || '',
+          contactNumber: userDetails.contactNumber || '',
+          location: userDetails.location || '',
+          // Add more details as needed
+        });
+      } else {
+        // If userDetailsDoc is not found, set user state with basic details
+        setUser({
+          uid: loggedInUser.uid,
+          email,
+          name: '',
+          preferredProfessions: '',
+          contactNumber: '',
+          location: '',
+        });
+      }
   
       // Reset error and clear the input fields
       setError('');
@@ -143,6 +206,7 @@ export default function App() {
       console.error('Error in handleLogin:', error.message);
     }
   };
+  
   
 
   const handleLogout = async () => {
@@ -164,27 +228,31 @@ export default function App() {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Welcome to the Job Board!</Text>
-      <TouchableOpacity style={styles.button} onPress={handleJobSeekerClick}>
-        <Text style={styles.buttonText}>Job Seeker</Text>
-      </TouchableOpacity>
+        <TouchableOpacity style={styles.button} onPress={handleJobSeekerClick}>
+          <Text style={styles.buttonText}>Job Seeker</Text>
+        </TouchableOpacity>
 
       {/* Modal for Job Seeker */}
-      <Modal visible={isJobSeekerModalVisible} animationType="slide">
+      <Modal  visible={isJobSeekerModalVisible} animationType="slide">
         <View style={styles.modalContainer}>
           {/* Your existing UI components */}
           {/* ... */}
 
           {user ? (
-            /* Display user details with edit access */
-            <>
-              <Text>User Details:</Text>
-              <Text>Email: {user.email}</Text>
-              {/* Add more details as needed */}
-              <TouchableOpacity onPress={handleLogout}>
-                <Text>Logout</Text>
-              </TouchableOpacity>
-            </>
-          ) : (
+              /* Display user details with edit access */
+              <>
+                <Text>User Details:</Text>
+                {user.email && <Text>Email: {user.email}</Text>}
+                {user.name && <Text>Name: {user.name}</Text>}
+                {user.preferredProfessions && <Text>Preferred Professions: {user.preferredProfessions}</Text>}
+                {user.contactNumber && <Text>Contact Number: {user.contactNumber}</Text>}
+                {user.location && <Text>Location: {user.location}</Text>}
+
+                <TouchableOpacity onPress={handleLogout}>
+                  <Text>Logout</Text>
+                </TouchableOpacity>
+              </>
+            ) : (
             /* Display signup or login options based on the state */
             <>
               {isSignUp ? (
@@ -290,5 +358,12 @@ const styles = StyleSheet.create({
   errorText: {
     color: 'red',
     marginBottom: 10,
+  },
+  modalContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5FCFF',
+    padding: 20,
   },
 });
