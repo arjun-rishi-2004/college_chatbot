@@ -139,8 +139,13 @@ const [editDetails, setEditDetails] = useState({
   
       console.log('Search results:', results);
   
-      // Update the state with the search results
-      setJobProviderSearchResults(results);
+      // Update the state with the search results or indicate no results
+      setJobProviderSearchResults(results.length > 0 ? results : null);
+  
+      // Show alert if no results found
+      if (results.length === 0) {
+        toast.success('Match not found');
+      }
     } catch (error) {
       console.error('Error in handleJobProviderSearch:', error);
     }
@@ -434,18 +439,24 @@ const [editDetails, setEditDetails] = useState({
 
 
         {/* Display search results for Job Provider */}
-        {jobProviderSearchResults.map((result) => (
-          <View key={result.id} style={styles.searchResult}>
-            {/* Display user details, customize based on your UI */}
-            <Text>Email: {result.email}</Text>
-            <Text>Name: {result.name}</Text>
-            <Text>contactNumber: {result.contactNumber}</Text>
+        {jobProviderSearchResults !== null ? (
+  <ScrollView horizontal style={styles.horizontalScrollView}>
+    {jobProviderSearchResults.map((result) => (
+      <View key={result.id} style={styles.searchResult}>
+        {/* Display user details, customize based on your UI */}
+        <Text>Email: {result.email}</Text>
+        <Text>Name: {result.name}</Text>
+        <Text>Contact Number: {result.contactNumber}</Text>
+        <Text>Location: {result.location}</Text>
+        <Text>Preferred Professions: {result.preferredProfessions}</Text>
+        {/* ... Other user details */}
+      </View>
+    ))}
+  </ScrollView>
+) : (
+  <Text>No results found</Text>
+)}
 
-            <Text>location: {result.location}</Text>
-            <Text>preferredProfessions: {result.preferredProfessions}</Text>
-          </View>
-
-        ))}
         </ScrollView>
 
       </>
@@ -464,25 +475,24 @@ const [editDetails, setEditDetails] = useState({
           <Button title="Search" onPress={handleJobProviderSearch} />
 
 
-          <ScrollView horizontal style={styles.horizontalScrollView}>
+          {jobProviderSearchResults !== null ? (
+  <ScrollView horizontal style={styles.horizontalScrollView}>
+    {jobProviderSearchResults.map((result) => (
+      <View key={result.id} style={styles.searchResult}>
+        {/* Display user details, customize based on your UI */}
+        <Text>Email: {result.email}</Text>
+        <Text>Name: {result.name}</Text>
+        <Text>Contact Number: {result.contactNumber}</Text>
+        <Text>Location: {result.location}</Text>
+        <Text>Preferred Professions: {result.preferredProfessions}</Text>
+        {/* ... Other user details */}
+      </View>
+    ))}
+  </ScrollView>
+) : (
+  <Text>No results found</Text>
+)}
 
-          {/* Display search results for Job Provider */}
-          {jobProviderSearchResults.map((result) => (
-            <View key={result.id} style={styles.searchResult}>
-              {/* Display user details, customize based on your UI */}
-              <Text>Email: {result.email}</Text>
-              <Text>Name: {result.name}</Text>
-              <Text>contactNumber: {result.contactNumber}</Text>
-
-              <Text>location: {result.location}</Text>
-              <Text>preferredProfessions: {result.preferredProfessions}</Text>
-
-
-
-              {/* ... Other user details */}
-            </View>
-          ))}
-          </ScrollView>
 
 
           {/* Add any additional UI components for Job Provider search modal */}
