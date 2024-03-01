@@ -2,12 +2,11 @@
 import React, { useState,useEffect } from 'react';
 import { View, Text, TouchableOpacity, TextInput, Modal, Button, StyleSheet,ScrollView } from 'react-native';
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from 'firebase/auth';
-import { storeJobSeekerInfo, app, auth,database, getDatabase, databaseRef } from './index';
+import { app, auth } from './index';
 // Assuming your Firestore is initialized in index.js
-import { getFirestore, collection, addDoc, getDocs,setDoc,getDoc,updateDoc,doc,query,where} from 'firebase/firestore';
+import { getFirestore, collection, addDoc, getDocs,updateDoc,query,where} from 'firebase/firestore';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-
 
 
 export default function App() {
@@ -38,29 +37,6 @@ const [editDetails, setEditDetails] = useState({
   contactNumber: '',
   location: '',
 });
-
-
-  const openDetailsModal = () => {
-    setDetailsModalVisible(true);
-    setIsEditingDetails(false);
-  };
-
-  const closeDetailsModal = () => {
-    setDetailsModalVisible(false);
-    setIsEditingDetails(false); 
-  };
-
-  const handleBackPress = () => {
-    if (isEditingDetails) {
-      // If editing details, go back to details view
-      setIsEditingDetails(false);
-    } else {
-      // If not editing, close the modal or handle other navigation logic
-      setJobSeekerModalVisible(false);  // Close the modal
-      setIsEditing(false); // Reset the editing state
-    }
-  };
-  
 
   const handleBackButton = () => {
     if (isEditingDetails) {
@@ -95,8 +71,6 @@ const [editDetails, setEditDetails] = useState({
   }, [user]);
 
   const db = getFirestore(app);
-  let seekerCredsSnapshot;
-
 
   const [isJobProviderModalVisible, setJobProviderModalVisible] = useState(false);
 
@@ -134,6 +108,43 @@ const [editDetails, setEditDetails] = useState({
             preferredProfessions: userDetails.preferredProfessions,
             // Include other details as needed
           });
+          
+        }
+
+        if (userDetails.name.includes(jobProviderSearchQuery)) {
+          results.push({
+            id: doc.id,
+            email: userDetails.email,
+            name: userDetails.name,
+            contactNumber: userDetails.contactNumber,
+            location: userDetails.location,
+            preferredProfessions: userDetails.preferredProfessions,
+          });
+          
+        }
+
+        if (userDetails.location.includes(jobProviderSearchQuery)) {
+          results.push({
+            id: doc.id,
+            email: userDetails.email,
+            name: userDetails.name,
+            contactNumber: userDetails.contactNumber,
+            location: userDetails.location,
+            preferredProfessions: userDetails.preferredProfessions,
+          });
+          
+        }
+
+        if (userDetails.email.includes(jobProviderSearchQuery)) {
+          results.push({
+            id: doc.id,
+            email: userDetails.email,
+            name: userDetails.name,
+            contactNumber: userDetails.contactNumber,
+            location: userDetails.location,
+            preferredProfessions: userDetails.preferredProfessions,
+          });
+          
         }
       });
   
@@ -340,7 +351,7 @@ const [editDetails, setEditDetails] = useState({
         setIsSignUp(false);
   
         // Display success message
-        toast.success(`Successfully logged in: ${loggedInUser.uid}`);
+        toast.success(`Successfully logged in: ${userDetails.name}`);
       } else {
         // If no matching document is found, set user state with basic details
         setUser({
@@ -376,20 +387,13 @@ const [editDetails, setEditDetails] = useState({
     }
   };
   
-  
-  
-  
-  
-  
-  
-  
-
   const handleLogout = async () => {
     try {
       // Sign out the user
       await signOut(auth);
 
       // Reset the user state
+      toast.success(`Logout successful! Goodbye, ${user.name}!`);
       setUser(null);
     } catch (error) {
       setError('Failed to log out. Please try again.');
@@ -412,24 +416,11 @@ const [editDetails, setEditDetails] = useState({
           <Text style={styles.buttonText}>Job Provider</Text>
         </TouchableOpacity>
 
-
-
-
-
-
-
-
-
-
-
-
-
-
       {isJobProviderModalVisible && (
       <>
         <TextInput
-          style={styles.input}
-          placeholder="Search by email or name"
+          style={styles.input2}
+          placeholder="Name or Profession..."
           value={jobProviderSearchQuery}
           onChangeText={(text) => setJobProviderSearchQuery(text)}
         />
@@ -440,79 +431,58 @@ const [editDetails, setEditDetails] = useState({
 
         {/* Display search results for Job Provider */}
         {jobProviderSearchResults !== null ? (
-  <ScrollView horizontal style={styles.horizontalScrollView}>
-    {jobProviderSearchResults.map((result) => (
-      <View key={result.id} style={styles.searchResult}>
-        {/* Display user details, customize based on your UI */}
-        <Text>Email: {result.email}</Text>
-        <Text>Name: {result.name}</Text>
-        <Text>Contact Number: {result.contactNumber}</Text>
-        <Text>Location: {result.location}</Text>
-        <Text>Preferred Professions: {result.preferredProfessions}</Text>
-        {/* ... Other user details */}
-      </View>
-    ))}
-  </ScrollView>
-) : (
-  <Text>No results found</Text>
-)}
-
+        <ScrollView horizontal style={styles.horizontalScrollView}>
+          {jobProviderSearchResults.map((result) => (
+            <View key={result.id} style={styles.searchResult}>
+              {/* Display user details, customize based on your UI */}
+              <Text>Email: {result.email}</Text>
+              <Text>Name: {result.name}</Text>
+              <Text>Contact Number: {result.contactNumber}</Text>
+              <Text>Location: {result.location}</Text>
+              <Text>Preferred Professions: {result.preferredProfessions}</Text>
+              {/* ... Other user details */}
+            </View>
+          ))}
         </ScrollView>
+        ) : (
+          <Text>No results found</Text>
+        )}
+        </ScrollView>
+        </>
+      )}
 
-      </>
-    )}
 
 
-
-<Modal visible={isJobProviderSearchModalVisible} animationType="slide">
-        <View style={styles.modalContainer}>
-          <TextInput
-            style={styles.input}
-            placeholder="Search profession"
-            value={jobProviderSearchQuery}
-            onChangeText={(text) => setJobProviderSearchQuery(text)}
-          />
-          <Button title="Search" onPress={handleJobProviderSearch} />
+    <Modal visible={isJobProviderSearchModalVisible} animationType="slide">
+      <View style={styles.modalContainer}>
+        <TextInput
+          style={styles.input}
+          placeholder="Search profession"
+          value={jobProviderSearchQuery}
+          onChangeText={(text) => setJobProviderSearchQuery(text)}
+        />
+        <Button title="Search" onPress={handleJobProviderSearch} />
 
 
           {jobProviderSearchResults !== null ? (
-  <ScrollView horizontal style={styles.horizontalScrollView}>
-    {jobProviderSearchResults.map((result) => (
-      <View key={result.id} style={styles.searchResult}>
-        {/* Display user details, customize based on your UI */}
-        <Text>Email: {result.email}</Text>
-        <Text>Name: {result.name}</Text>
-        <Text>Contact Number: {result.contactNumber}</Text>
-        <Text>Location: {result.location}</Text>
-        <Text>Preferred Professions: {result.preferredProfessions}</Text>
-        {/* ... Other user details */}
-      </View>
-    ))}
-  </ScrollView>
-) : (
-  <Text>No results found</Text>
-)}
-
-
-
-          {/* Add any additional UI components for Job Provider search modal */}
+        <ScrollView horizontal style={styles.horizontalScrollView}>
+          {jobProviderSearchResults.map((result) => (
+            <View key={result.id} style={styles.searchResult}>
+              {/* Display user details, customize based on your UI */}
+              <Text>Email: {result.email}</Text>
+              <Text>Name: {result.name}</Text>
+              <Text>Contact Number: {result.contactNumber}</Text>
+              <Text>Location: {result.location}</Text>
+              <Text>Preferred Professions: {result.preferredProfessions}</Text>
+              {/* ... Other user details */}
+            </View>
+          ))}
+        </ScrollView>
+      ) : (
+        <Text>No results found</Text>
+    )}
         </View>
       </Modal>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
       {/* Modal for Job Seeker */}
       <Modal  visible={isJobSeekerModalVisible} animationType="slide">
@@ -520,14 +490,14 @@ const [editDetails, setEditDetails] = useState({
           {/* Your existing UI components */}
           {/* ... */}
           <TouchableOpacity onPress={handleBackButton} style={{
-    backgroundColor: '#ddd',
-    borderRadius: 5,
-    padding: 10,
-    marginTop: 5,
-    top:450,
-    alignItems: 'center',
-    justifyContent: 'center',
-  }}>
+            backgroundColor: '#ddd',
+            borderRadius: 5,
+            padding: 10,
+            marginTop: -200,
+            top:450,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}>
 
       <Text style={{ color: '#333', fontSize: 16, fontWeight: 'bold'}}>
         Back
@@ -543,28 +513,28 @@ const [editDetails, setEditDetails] = useState({
               <>
               
                 <Text style={styles.h1}>Edit User Details:</Text>
-                <Text style={styles.h1}>Name: </Text>
+                <Text style={styles.h2}>Name: </Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Name"
                   value={editDetails.name}
                   onChangeText={(text) => setEditDetails({ ...editDetails, name: text })}
                 />
-                <Text style={styles.h1}>Preferred Professions: </Text>
+                <Text style={styles.h2}>Preferred Professions: </Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Preferred Professions"
                   value={editDetails.preferredProfessions}
                   onChangeText={(text) => setEditDetails({ ...editDetails, preferredProfessions: text })}
                 />
-                <Text style={styles.h1}>Contact Number: </Text>
+                <Text style={styles.h2}>Contact Number: </Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Contact Number"
                   value={editDetails.contactNumber}
                   onChangeText={(text) => setEditDetails({ ...editDetails, contactNumber: text })}
                 />
-                <Text style={styles.h1}>Location: </Text>
+                <Text style={styles.h2}>Location: </Text>
                 <TextInput
                   style={styles.input}
                   placeholder="Location"
@@ -572,33 +542,16 @@ const [editDetails, setEditDetails] = useState({
                   onChangeText={(text) => setEditDetails({ ...editDetails, location: text })}
                 />
 
-                
-
                 <TouchableOpacity onPress={handleSaveDetails} style={styles.saveButton}>
                   <Text style={styles.saveButtonText} >Save</Text>
                 </TouchableOpacity>
-
-                {/* Back button
-                <TouchableOpacity onPress={handleBackPress} style={styles.backButton}>
-                  <Text style={styles.backButtonText}>Back</Text>
-                </TouchableOpacity> */}
               </>
             ) : (
               /* Display user details with edit button */
               <>
-              <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10, color: '#333' }}>User Details:</Text>
+              <Text style={{ fontSize: 25, marginBottom: 10, color: '#333' }}>User Details:</Text>
                <View style={styles.userDetailsContainer}>
                 
-                {/* {console.log('User Details:', user)}
-                {user.email && <Text>Email: {user.email}</Text>}
-                {user.name && <Text>Name: {user.name}</Text>}
-                {user.preferredProfessions && (
-                  <Text>Preferred Professions: {user.preferredProfessions}</Text>
-                )}
-                {user.contactNumber && <Text>Contact Number: {user.contactNumber}</Text>}
-                {user.location && <Text>Location: {user.location}</Text>} */}
-
-
               <Text style={styles.userDetailsText}>Email: {user.email}</Text>
                   <Text style={styles.userDetailsText}>Name: {user.name}</Text>
                   <Text style={styles.userDetailsText}>
@@ -610,11 +563,11 @@ const [editDetails, setEditDetails] = useState({
                   </View>
 
                 <TouchableOpacity onPress={() => setIsEditing(true)}>
-                  <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10, color: '#333' }}>Edit Details</Text>
+                  <Text style={{ fontSize: 20, marginBottom: 10, color: '#333' }}>Edit Details</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity onPress={handleLogout}>
-                  <Text style={{ fontSize: 20, fontWeight: 'bold', marginBottom: 10, color: '#333' }}>Logout</Text>
+                  <Text style={{ fontSize: 20, marginBottom: 10, color: '#333' }}>Logout</Text>
                 </TouchableOpacity>
               </>
             )}
@@ -708,6 +661,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     fontWeight: 'bold',
+    textAlign:'center',
   },
   modalContainer: {
     flex: 1,
@@ -722,7 +676,17 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     marginBottom: 15,
     padding: 10,
-    width: '50%',
+    width: '70%',
+  },
+
+  input2:{
+    marginTop:100,
+    height: 40,
+    borderColor: '#BDC3C7',
+    borderWidth: 1,
+    marginBottom: 15,
+    padding: 10,
+    width: '70%',
   },
   errorText: {
     color: '#E74C3C',
@@ -735,12 +699,19 @@ const styles = StyleSheet.create({
     marginBottom: 15,
     color: '#333',
   },
+  h2: {
+    fontSize: 19,
+    fontWeight: 'light',
+    marginBottom: 15,
+    color: '#333',
+    textAlign:'left',
+  },
   saveButton: {
     backgroundColor: '#2ECC71',
     borderRadius: 8,
-    padding: 15,
-    marginTop: 20,
-    width: '10%',
+    padding: 5,
+    marginTop: 70,
+    width: 55,
     alignItems: 'center',
   },
   saveButtonText: {
@@ -752,7 +723,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#BDC3C7',
     borderRadius: 8,
     padding: 15,
-    marginTop: 50,
+    marginTop: 35,
     width: '80%',
     alignItems: 'center',
   },
@@ -774,6 +745,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 18,
     marginBottom: 10,
+    textAlign:'center',
   },
   editButton: {
     backgroundColor: '#2ECC71',
@@ -815,8 +787,6 @@ const styles = StyleSheet.create({
   horizontalScrollView: {
     flexDirection: 'row', // Arrange children horizontally
   },
-  
-  
 });
 
 
