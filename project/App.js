@@ -5,8 +5,11 @@ import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } f
 import { app, auth } from './index';
 // Assuming your Firestore is initialized in index.js
 import { getFirestore, collection, addDoc, getDocs,updateDoc,query,where} from 'firebase/firestore';
-import { ToastContainer, toast } from 'react-toastify';
+// import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Toast from 'react-native-toast-message';
+
+
 
 
 export default function App() {
@@ -29,6 +32,7 @@ export default function App() {
   const [isEditingDetails, setIsEditingDetails] = useState(false);
   const [isJobProviderSearchModalVisible, setJobProviderSearchModalVisible] = useState(false);
 
+    
 
   // Add a new state
 const [editDetails, setEditDetails] = useState({
@@ -155,8 +159,11 @@ const [editDetails, setEditDetails] = useState({
   
       // Show alert if no results found
       if (results.length === 0) {
-        toast.success('Match not found');
-      }
+        Toast.show({
+          type: 'error',
+          text1: 'Match not found',
+      });      
+    }
     } catch (error) {
       console.error('Error in handleJobProviderSearch:', error);
     }
@@ -189,122 +196,166 @@ const [editDetails, setEditDetails] = useState({
         });
   
         // Display success message
-        toast.success('Details updated successfully!');
+        Toast.show({
+          type: 'success',
+          text1: 'Details updated successfully!',
+        });
+              
       }
     } catch (error) {
       // Display error message
-      toast.error('Failed to update details. Please try again.');
-      console.error('Error in handleSaveDetails:', error);
+      Toast.show({
+        type: 'error',
+        text1: 'Failed to update details. Please try again.',
+      });
+            console.error('Error in handleSaveDetails:', error);
     }
   };
   
   const handleSignUp = async () => {
     try {
-      // Validate input
-      if (!email || !password || !confirmPassword || password !== confirmPassword) {
-        toast.error('Please enter valid email and matching passwords.');
-        console.log('Invalid input');
-        return;
-      }
-  
-      // Validate email format
-      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      if (!emailRegex.test(email)) {
-        toast.error('Please enter a valid email address.');
-        console.log('Invalid email format');
-        return;
-      }
-  
-      // Validate password length
-      if (password.length < 6) {
-        toast.error('Password should be at least 6 characters.');
-        console.log('Weak password error');
-        return;
-      }
-  
-      // Check if the user already exists in "seekerCreds" collection
-      const seekerCredsCollection = collection(db, 'seekerCreds');
-      const q = query(seekerCredsCollection, where('email', '==', email));
-      const existingUserSnapshot = await getDocs(q);
-  
-      if (existingUserSnapshot.size > 0) {
-        toast.error('User already exists. Please log in.');
-        setIsSignUp(false); // Switch to login view
-        console.log('User already exists');
-        return;
-      }
-  
-      // Collect additional details from the user
-      const name = prompt('Enter your name:');
-      const preferredProfessions = prompt('Enter your preferred professions (comma-separated):');
-      const contactNumber = prompt('Enter your contact number:');
-      const location = prompt('Enter your location:');
-  
-      // Validate collected details
-      if (!name || !preferredProfessions || !contactNumber || !location) {
-        toast.error('Please provide all required details.');
-        console.log('Incomplete details');
-        return;
-      }
-  
-      // Create user with email and password
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const newUser = userCredential.user;
-  
-      // Store user credentials and additional details in the "seekerCreds" collection
-      await addDoc(seekerCredsCollection, {
-        email,
-        password,
-        name,
-        preferredProfessions,
-        contactNumber,
-        location,
-      });
-  
-      // Set the user state with the fetched details
-      setUser({
-        uid: newUser.uid,
-        email,
-        name,
-        preferredProfessions,
-        contactNumber,
-        location,
-        // Add more details as needed
-      });
-  
-      // Reset error and clear the input fields
-      setError('');
-      setEmail('');
-      setPassword('');
-      setConfirmPassword('');
-  
-      // Display success message or navigate to another screen if needed
-      toast.success('Successfully registered!');
-  
-      // Open the modal for the newly signed up user
-      setJobSeekerModalVisible(true);
+        // Validate input
+        if (!email || !password || !confirmPassword || password !== confirmPassword) {
+            Toast.show({
+                type: 'error',
+                text1: 'Please enter valid email and matching passwords.',
+            });
+            console.log('Invalid input');
+            return;
+        }
+
+        // Validate email format
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            Toast.show({
+                type: 'error',
+                text1: 'Please enter a valid email address.',
+            });
+            console.log('Invalid email format');
+            return;
+        }
+
+        // Validate password length
+        if (password.length < 6) {
+            Toast.show({
+                type: 'error',
+                text1: 'Password should be at least 6 characters.',
+            });
+            console.log('Weak password error');
+            return;
+        }
+
+        // Check if the user already exists in "seekerCreds" collection
+        const seekerCredsCollection = collection(db, 'seekerCreds');
+        const q = query(seekerCredsCollection, where('email', '==', email));
+        const existingUserSnapshot = await getDocs(q);
+
+        if (existingUserSnapshot.size > 0) {
+            Toast.show({
+                type: 'error',
+                text1: 'User already exists. Please log in.',
+            });
+            setIsSignUp(false); // Switch to login view
+            console.log('User already exists');
+            return;
+        }
+
+        // Collect additional details from the user
+        const name = prompt('Enter your name:');
+        const preferredProfessions = prompt('Enter your preferred professions (comma-separated):');
+        const contactNumber = prompt('Enter your contact number:');
+        const location = prompt('Enter your location:');
+
+        // Validate collected details
+        if (!name || !preferredProfessions || !contactNumber || !location) {
+            Toast.show({
+                type: 'error',
+                text1: 'Please provide all required details.',
+            });
+            console.log('Incomplete details');
+            return;
+        }
+
+        // Create user with email and password
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        const newUser = userCredential.user;
+
+        // Store user credentials and additional details in the "seekerCreds" collection
+        await addDoc(seekerCredsCollection, {
+            email,
+            password,
+            name,
+            preferredProfessions,
+            contactNumber,
+            location,
+        });
+
+        // Set the user state with the fetched details
+        setUser({
+            uid: newUser.uid,
+            email,
+            name,
+            preferredProfessions,
+            contactNumber,
+            location,
+            // Add more details as needed
+        });
+
+        // Reset error and clear the input fields
+        setError('');
+        setEmail('');
+        setPassword('');
+        setConfirmPassword('');
+
+        // Display success message or navigate to another screen if needed
+        Toast.show({
+            type: 'success',
+            text1: 'Successfully registered!',
+        });
+
+        // Open the modal for the newly signed up user
+        setJobSeekerModalVisible(true);
     } catch (error) {
-      toast.error('Error in handleSignUp');
-      console.error('Error in handleSignUp:', error.message);
-  
-      if (error.code === 'auth/weak-password') {
-        toast.error('Password should be at least 6 characters.');
-      } else if (error.code === 'auth/invalid-email') {
-        toast.error('Please enter a valid email address.');
-      } else if (error.code === 'auth/email-already-in-use') {
-        toast.error('User already exists. Please log in.');
-      } else {
-        toast.error('Failed to sign up. Please try again.');
-      }
+        Toast.show({
+            type: 'error',
+            text1: 'Error in handleSignUp',
+        });
+        console.error('Error in handleSignUp:', error.message);
+
+        if (error.code === 'auth/weak-password') {
+            Toast.show({
+                type: 'error',
+                text1: 'Password should be at least 6 characters.',
+            });
+        } else if (error.code === 'auth/invalid-email') {
+            Toast.show({
+                type: 'error',
+                text1: 'Please enter a valid email address.',
+            });
+        } else if (error.code === 'auth/email-already-in-use') {
+            Toast.show({
+                type: 'error',
+                text1: 'User already exists. Please log in.',
+            });
+        } else {
+            Toast.show({
+                type: 'error',
+                text1: 'Failed to sign up. Please try again.',
+            });
+        }
     }
-  };
+};
+
   
   
   const handleLogin = async () => {
     try {
       // Validate input
       if (!email || !password) {
-        toast.error('Email and password are required.');
+        Toast.show({
+          type: 'error',
+          text1: 'Email and password are required.',
+        });        
         console.error('Email and password are required.');
         return;
       }
@@ -351,8 +402,11 @@ const [editDetails, setEditDetails] = useState({
         setIsSignUp(false);
   
         // Display success message
-        toast.success(`Successfully logged in: ${userDetails.name}`);
-      } else {
+        Toast.show({
+          type: 'success',
+          text1: `Successfully logged in: ${userDetails.name}`,
+        });
+        } else {
         // If no matching document is found, set user state with basic details
         setUser({
           uid: loggedInUser.uid,
@@ -378,12 +432,18 @@ const [editDetails, setEditDetails] = useState({
         setIsSignUp(false);
   
         // Display success message
-        toast.success(`Successfully logged in: ${loggedInUser.uid}`);
+        Toast.show({
+          type: 'success',
+          text1: `Successfully logged in: ${userDetails.name}`,
+        });
       }
     } catch (error) {
       // Display error message
-      toast.error('Invalid email or password. Please try again.');
-      console.error('Error in handleLogin:', error);
+      Toast.show({
+        type: 'error',
+        text1: `Invalid email or password. Please try again.`,
+      });
+            console.error('Error in handleLogin:', error);
     }
   };
   
@@ -393,7 +453,10 @@ const [editDetails, setEditDetails] = useState({
       await signOut(auth);
 
       // Reset the user state
-      toast.success(`Logout successful! Goodbye, ${user.name}!`);
+      Toast.show({
+        type: 'success',
+        text1: `Logout successful! Goodbye, ${user.name}!`,
+      });      
       setUser(null);
     } catch (error) {
       setError('Failed to log out. Please try again.');
@@ -626,7 +689,7 @@ const [editDetails, setEditDetails] = useState({
         )}
 
         {/* Toast container */}
-        <ToastContainer position="bottom-center" autoClose={5000} hideProgressBar={false} />
+        {/* <ToastContainer position="bottom-center" autoClose={5000} hideProgressBar={false} /> */}
       </View>
     </Modal>
   </View>

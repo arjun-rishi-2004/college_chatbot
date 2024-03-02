@@ -2,6 +2,11 @@
 import { initializeApp } from "firebase/app";
 import { getDatabase, ref, push, set, get } from "firebase/database";
 import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
+import { AppRegistry } from 'react-native';
+import Toast from 'react-native-toast-message';
+import { name as appName } from './app.json';
+
+
 
 const firebaseConfig = {
   apiKey: "AIzaSyCJ-MsXLRSleXj6fQjs7nbYwrPAdcH4L34",
@@ -13,6 +18,9 @@ const firebaseConfig = {
   appId: "1:475451161212:web:3894adf0b1a12acc3ca7f9",
   measurementId: "G-PY9GB3Y1SR"
 };
+
+AppRegistry.registerComponent(appName, () => App);
+AppRegistry.registerComponent('toast', () => Toast);
 
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
