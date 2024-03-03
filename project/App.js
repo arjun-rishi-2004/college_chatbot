@@ -196,13 +196,13 @@ const [editDetails, setEditDetails] = useState({
       // Validate input
       if (!email || !password || !confirmPassword || password !== confirmPassword) {
         Alert.alert(
-          'Match not found',
+          'Invalid input',
           'Please enter valid email and matching passwords.',
-        );  
+        );
         console.log('Invalid input');
         return;
       }
-
+  
       const lowercaseEmail = email.toLowerCase();
   
       // Validate email format
@@ -211,7 +211,7 @@ const [editDetails, setEditDetails] = useState({
         Alert.alert(
           'Invalid EmailID',
           'Please enter a valid email address.',
-        );  
+        );
         console.log('Invalid email format');
         return;
       }
@@ -219,44 +219,12 @@ const [editDetails, setEditDetails] = useState({
       // Validate password length
       if (password.length < 6) {
         Alert.alert(
-          'Warning',
+          'Weak Password',
           'Password should be at least 6 characters.',
-        );  
+        );
         console.log('Weak password error');
         return;
       }
-  
-      // Check if the user already exists in "seekerCreds" collection
-      const seekerCredsCollection = collection(db, 'seekerCreds');
-      const q = query(seekerCredsCollection, where('email', '==', lowercaseEmail));
-      const existingUserSnapshot = await getDocs(q);
-  
-      if (existingUserSnapshot.size > 0) {
-        Alert.alert(
-          'User  Already Exists',
-          'A user with this email is already registered.\nPlease login instead of registering.',
-        );  
-        setIsSignUp(false); // Switch to login view
-        console.log('User already exists');
-        return;
-      }
-  
-      // Sign up the user with email and password
-      const userCredential = await createUserWithEmailAndPassword(auth, lowercaseEmail, password);
-      const newUser = userCredential.user;
-  
-      // Add user details to Firestore
-      const seekerCredsDocRef = doc(seekerCredsCollection, newUser.uid);
-  
-      await setDoc(seekerCredsDocRef, {
-        email,
-        password,
-        name: '',  // Add default or empty values for other fields
-        preferredProfessions: '',
-        contactNumber: '',
-        location: '',
-        // Add more fields as needed
-      });
   
       // Show modal to collect additional details
       setModalVisible(true);
@@ -268,7 +236,6 @@ const [editDetails, setEditDetails] = useState({
       console.error('Error in handleSignUp:', error.message);
     }
   };
-  
   
   const handleLogin = async () => {
     try {
@@ -467,6 +434,77 @@ const [editDetails, setEditDetails] = useState({
   };
   
 
+
+// Add a new function to handle saving details after signup
+const handleSaveDetailsAfterSignUp = async () => {
+  try {
+    // Validate collected details
+    if (!name || !preferredProfessions || !contactNumber || !location) {
+      Alert.alert(
+        'Warning',
+        'Please provide all required details.',
+      );
+      console.log('Incomplete details');
+      return;
+    }
+
+    // Get the currently logged-in user
+    let user = auth.currentUser;
+
+    if (!user) {
+      // If the user is not logged in, handle this case (e.g., sign in)
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      user = userCredential.user;
+    }
+
+    // Now user should be authenticated
+
+    let lowercaseEmail = email.toLowerCase();
+    if (user) {
+
+      const db = getFirestore(app);
+      const seekerCredsCollection = collection(db, 'seekerCreds');
+      // Create a new document with user details
+      const userDocRef = doc(seekerCredsCollection, user.uid);
+
+      console.log('Before saving user details:', user);
+
+      await setDoc(userDocRef, {
+        email: lowercaseEmail,
+        password: password,
+        name: name || '',  // Add default or empty values for other fields
+        preferredProfessions: preferredProfessions || '',
+        contactNumber: contactNumber || '',
+        location: location || '',
+        // Add more fields as needed
+      });
+
+      console.log('After saving user details:', user);
+
+      // Display success message
+      Alert.alert(
+        'Success',
+        'Account created successfully!',
+      );
+
+      // Reset states
+      setModalVisible(false);
+      setEditDetails({
+        name: '',
+        preferredProfessions: '',
+        contactNumber: '',
+        location: '',
+      });
+    }
+  } catch (error) {
+    // Display error message
+    Alert.alert(
+      'Error',
+      'Error in handleSaveDetailsAfterSignUp.',
+    );
+    console.error('Error in handleSaveDetailsAfterSignUp:', error.message);
+  }
+};
   
   const handleLogout = async () => {
     try {
@@ -759,7 +797,7 @@ const [editDetails, setEditDetails] = useState({
 
 
                     <View style={styles.buttonContainer}>
-                        <Button style={styles.button} title="Save Details" onPress={handleSaveDetails} />
+                        <Button style={styles.button} title="Save Details" onPress={handleSaveDetailsAfterSignUp} />
                         <Button style={styles.button} title="Close" onPress={handleCloseModal} />
                     </View>
                 </View>
